@@ -1,0 +1,11 @@
+{
+  "name": "Scrap Collage Maker",
+  "short_name": "Collage Maker",
+  "description": "写真を端末内で加工するスクラップブック風コラージュ作成アプリ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ececec",
+  "theme_color": "#f58fa5",
+  "icons": []
+}
