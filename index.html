@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f58fa5">
+  <title>Scrap Collage Maker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Scrap Collage Maker</h1>
+    <button id="renderBtn" class="primary">自動配置</button>
+  </header>
+
+  <main class="app-grid">
+    <aside class="photos-panel panel">
+      <div class="panel-title-row">
+        <h2>写真</h2>
+        <label class="file-button">追加<input id="fileInput" type="file" accept="image/*" multiple></label>
+      </div>
+      <p class="hint">ドラッグで並べ替え／タップで切り取り調整</p>
+      <div id="thumbs" class="thumbs"></div>
+    </aside>
+
+    <section class="preview-panel panel">
+      <canvas id="canvas" width="1080" height="1350"></canvas>
+    </section>
+
+    <aside class="settings-panel panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="basic">基本</button>
+        <button class="tab" data-tab="stamp">スタンプ</button>
+      </div>
+
+      <section id="basic" class="tab-panel active">
+        <label>レイアウト
+          <select id="layout">
+            <option value="normal">通常</option>
+            <option value="hero1">大枠1（写真1）</option>
+            <option value="hero2">大枠2（写真1・2）</option>
+          </select>
+        </label>
+        <label>使用枚数
+          <input id="photoCount" type="number" min="3" max="12" value="8">
+        </label>
+
+        <div class="field-group">
+          <span>背景色</span>
+          <div id="bgPalette" class="palette"></div>
+          <input id="bgCustom" type="color" value="#f4ebdd" aria-label="背景色を自由指定">
+        </div>
+
+        <label class="check"><input id="border" type="checkbox" checked>白フチ</label>
+        <label class="check"><input id="shadow" type="checkbox" checked>影</label>
+        <label class="check"><input id="tape" type="checkbox" checked>マスキングテープ</label>
+
+        <hr>
+        <label class="check"><input id="textEnabled" type="checkbox">文字カードを1枠追加</label>
+        <label>見出し<input id="textHeading" type="text" value="MEMORIES"></label>
+        <label>本文<textarea id="textBody" rows="4">この日の思い出を自由に入力できます。</textarea></label>
+        <label>文字カード色<input id="textBg" type="color" value="#fffdf7"></label>
+
+        <hr>
+        <div class="save-row">
+          <button id="savePng">PNG保存</button>
+          <button id="saveJpg">JPEG保存</button>
+        </div>
+      </section>
+
+      <section id="stamp" class="tab-panel">
+        <label>種類
+          <select id="stampType">
+            <option value="heart">ハート</option>
+            <option value="star">星</option>
+            <option value="sparkle">キラキラ</option>
+            <option value="flower">花</option>
+          </select>
+        </label>
+        <label>サイズ<input id="stampSize" type="range" min="24" max="120" value="56"></label>
+        <div class="field-group">
+          <span>色</span>
+          <div id="stampPalette" class="palette"></div>
+          <input id="stampCustom" type="color" value="#f58fa5">
+        </div>
+        <p class="hint">プレビューをタップして配置</p>
+        <button id="undoStamp">最後を削除</button>
+        <button id="clearStamps">全削除</button>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="cropDialog">
+    <form method="dialog" class="crop-card">
+      <h2>切り取り調整</h2>
+      <p class="hint">画像をドラッグ／ピンチまたはスライダーで拡大縮小</p>
+      <canvas id="cropCanvas" width="420" height="520"></canvas>
+      <label>拡大率<input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1"></label>
+      <div class="dialog-actions">
+        <button id="cropReset" type="button">中央に戻す</button>
+        <button value="cancel">キャンセル</button>
+        <button id="cropApply" type="button" class="primary">適用</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
