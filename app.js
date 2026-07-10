@@ -1,7 +1,7 @@
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 const canvas=$('#canvas'),ctx=canvas.getContext('2d');
 const cropCanvas=$('#cropCanvas'),cropCtx=cropCanvas.getContext('2d');
-const state={photos:[],bg:'#f4ebdd',stampColor:'#f58fa5',stamps:[],cropIndex:-1,cropTemp:null,dragIndex:null};
+const state={photos:[],bg:'#f4ebdd',stampColor:'#f58fa5',stamps:[],cropIndex:-1,cropTemp:null,cropFrame:null,dragIndex:null};
 const bgColors=['#F4EBDD','#F8F5EE','#DDD5C9','#E8D4D2','#D7E0E7','#D8E1D2','#DED8E8','#E3E3E3'];
 const stampColors=['#F58FA5','#FF9E80','#F5B6D2','#C3A6E8','#91C9F7','#91D9C2','#F6D77A','#F3B27A'];
 function colorPalette(el,colors,onPick){colors.forEach(c=>{const b=document.createElement('button');b.className='color-tile';b.style.background=c;b.title=c;b.onclick=()=>onPick(c);el.appendChild(b)})}
@@ -23,8 +23,9 @@ canvas.onclick=e=>{if(!$('#stamp').classList.contains('active'))return;const r=c
 $('#undoStamp').onclick=()=>{state.stamps.pop();render()};$('#clearStamps').onclick=()=>{state.stamps=[];render()};
 function save(type){render();const a=document.createElement('a');a.download=`collage.${type==='image/png'?'png':'jpg'}`;a.href=canvas.toDataURL(type,.95);a.click()}$('#savePng').onclick=()=>save('image/png');$('#saveJpg').onclick=()=>save('image/jpeg');
 let pointers=new Map(),lastDist=0,dragStart=null;
-function openCrop(i){state.cropIndex=i;const p=state.photos[i];state.cropTemp={zoom:p.zoom,panX:p.panX,panY:p.panY};$('#cropZoom').value=p.zoom;$('#cropDialog').showModal();drawCrop()}
-function drawCrop(){const p=state.photos[state.cropIndex],t=state.cropTemp;if(!p||!t)return;cropCtx.clearRect(0,0,cropCanvas.width,cropCanvas.height);cropCtx.fillStyle='#eee';cropCtx.fillRect(0,0,cropCanvas.width,cropCanvas.height);const w=340,h=430,x=40,y=45;coverDraw(cropCtx,p.img,x,y,w,h,t,true,false,0)}
+function getCropFrame(i){const photoCount=Math.max(1,Math.min(+$('#photoCount').value||8,state.photos.length,$('#textEnabled').checked?11:12));const total=photoCount+($('#textEnabled').checked?1:0);const allSlots=slots($('#layout').value,total);const fallback=slots('normal',12);const slot=allSlots[i]||fallback[Math.min(i,fallback.length-1)]||[0,0,325,425,0];return{w:slot[2],h:slot[3]}}
+function openCrop(i){state.cropIndex=i;const p=state.photos[i];state.cropTemp={zoom:p.zoom,panX:p.panX,panY:p.panY};state.cropFrame=getCropFrame(i);$('#cropZoom').value=p.zoom;$('#cropDialog').showModal();drawCrop()}
+function drawCrop(){const p=state.photos[state.cropIndex],t=state.cropTemp,f=state.cropFrame;if(!p||!t||!f)return;cropCtx.clearRect(0,0,cropCanvas.width,cropCanvas.height);cropCtx.fillStyle='#eee';cropCtx.fillRect(0,0,cropCanvas.width,cropCanvas.height);const margin=34,maxW=cropCanvas.width-margin*2,maxH=cropCanvas.height-margin*2,ratio=f.w/f.h;let w,h;if(maxW/maxH>ratio){h=maxH;w=h*ratio}else{w=maxW;h=w/ratio}const x=(cropCanvas.width-w)/2,y=(cropCanvas.height-h)/2;coverDraw(cropCtx,p.img,x,y,w,h,t,$('#border').checked,false,0)}
 $('#cropZoom').oninput=e=>{state.cropTemp.zoom=+e.target.value;drawCrop()};
 cropCanvas.onpointerdown=e=>{cropCanvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.offsetX,y:e.offsetY});if(pointers.size===1)dragStart={x:e.offsetX,y:e.offsetY,panX:state.cropTemp.panX,panY:state.cropTemp.panY};if(pointers.size===2){const a=[...pointers.values()];lastDist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}};
 cropCanvas.onpointermove=e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.offsetX,y:e.offsetY});if(pointers.size===1&&dragStart){state.cropTemp.panX=Math.max(-1,Math.min(1,dragStart.panX-(e.offsetX-dragStart.x)/150));state.cropTemp.panY=Math.max(-1,Math.min(1,dragStart.panY-(e.offsetY-dragStart.y)/180));drawCrop()}else if(pointers.size===2){const a=[...pointers.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);state.cropTemp.zoom=Math.max(1,Math.min(3,state.cropTemp.zoom+(d-lastDist)/180));lastDist=d;$('#cropZoom').value=state.cropTemp.zoom;drawCrop()}};
